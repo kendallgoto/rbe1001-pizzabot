@@ -15,6 +15,7 @@ using namespace pros;
 
 enum CurrentState { SETUP, READY, MANUAL, AUTO};
 enum AutonomousState { IDLE, SEEKING, DELIVERING };
+
 //pros::brain      Brain;
 Motor      motorLeft (LEFT_WHEEL_PORT, E_MOTOR_GEARSET_18, true, E_MOTOR_ENCODER_DEGREES);
 Motor      motorRight(RIGHT_WHEEL_PORT, E_MOTOR_GEARSET_18, false, E_MOTOR_ENCODER_DEGREES);
@@ -38,57 +39,59 @@ BarState intakeCurrentPosition;
 double clawOpenPos;
 bool clawClosed = false;
 
-
-
-
 void initialize() {
-	pros::lcd::initialize();
-	pros::lcd::set_text(1, "Hello PROS User!");
     //Assume four bar is reset to floor
     motor4Bar_1.tare_position();
     motor4Bar_2.tare_position();
     motorClaw.tare_position();
 
     //Limit voltage (or current ... set_current_limit)
-    motor4Bar_1.set_voltage_limit(0); //mv
-    motor4Bar_2.set_voltage_limit(0); //mv
-    motorClaw.set_voltage_limit(0); //mv
+    motor4Bar_1.set_voltage_limit(5000); //mv
+    motor4Bar_2.set_voltage_limit(5000); //mv
+    motorClaw.set_voltage_limit(5000); //mv
 
 //    motor4Bar_1.setTimeout(4, timeUnits::sec); //prevent overdriving
 //    motor4Bar_2.setTimeout(4, timeUnits::sec);
 
     intake_Positions[INTAKE_GROUND] = motor4Bar_1.get_position();
-    intake_Positions[INTAKE_FLOOR2] = motor4Bar_1.get_position() + 210;
-    intake_Positions[INTAKE_FLOOR3] = motor4Bar_1.get_position() + 340;
-    intake_Positions[INTAKE_FLOOR4] = motor4Bar_1.get_position() + 510;
-    intake_Positions[INTAKE_FLOOR5] = motor4Bar_1.get_position() + 525;
+    intake_Positions[INTAKE_FLOOR2] = motor4Bar_1.get_position() + 160;
+    intake_Positions[INTAKE_FLOOR3] = motor4Bar_1.get_position() + 210;
+    intake_Positions[INTAKE_FLOOR4] = motor4Bar_1.get_position() + 340;
+    intake_Positions[INTAKE_FLOOR5] = motor4Bar_1.get_position() + 510;
 
     int init_height = 180;
-    motor4Bar_1.move_absolute(init_height, 2);
-    motor4Bar_2.move_absolute(init_height, 2);
+    motor4Bar_1.move_absolute(init_height, 80);
+    motor4Bar_2.move_absolute(init_height, 80);
     while (!((motor4Bar_1.get_position() < init_height + 5) && (motor4Bar_1.get_position() > init_height - 5))) {
+        cout << motor4Bar_1.get_position() << endl;
         delay(2);
     }
-    motorClaw.move_absolute(135, 2);
-    motorClaw.move_absolute(135, 2);
+    motorClaw.move_absolute(135, 80);
+    motorClaw.move_absolute(135, 80);
     clawOpenPos = motorClaw.get_position();
 
     double target = intake_Positions[INTAKE_GROUND];
-    motor4Bar_1.move_absolute(target, 2);
-    motor4Bar_2.move_absolute(target, 2);
+    motor4Bar_1.move_absolute(target, 80);
+    motor4Bar_2.move_absolute(target, 80);
     while (!((motor4Bar_1.get_position() < target + 5) && (motor4Bar_1.get_position() > target - 5))) {
         delay(2);
     }
     intakeCurrentPosition = INTAKE_GROUND;
 
-    //cout << "Torque\tVelocity\tPower\t\tTorque\tVelocity\tPower" << endl;
+    cout << "Torque\tVelocity\tPower\t\tTorque\tVelocity\tPower" << endl;
+
+    opcontrol();
 }
 
 void disabled() {}
 
-void competition_initialize() {}
+void competition_initialize() {
 
-void autonomous() {}
+}
+
+void autonomous() {
+
+}
 
 void opcontrol() {
 	while (true) {
@@ -134,24 +137,17 @@ void opcontrol() {
             barDirection = -1;
         }
         if(barDirection != 0) {
-            int resultingChange = (((int)intakeCurrentPosition) + barDirection) % BARSTATE_NR_ITEMS;
-            if(resultingChange < 0) { //loop
-                resultingChange = BARSTATE_NR_ITEMS + resultingChange;
+            int resultingChange = (((int)intakeCurrentPosition) + barDirection);
+            if(resultingChange >= 0 && resultingChange < BARSTATE_NR_ITEMS) {
+                BarState newState = (BarState)resultingChange;
+                double target = intake_Positions[newState];
+                motor4Bar_1.move_absolute(target, 80);
+                motor4Bar_2.move_absolute(target, 80);
+                intakeCurrentPosition = newState;
             }
-            BarState newState = (BarState)resultingChange;
-            double target = intake_Positions[newState];
-            motor4Bar_1.move_absolute(target, 2);
-            motor4Bar_2.move_absolute(target, 2);
-            while (!((motor4Bar_1.get_position() < target + 5) && (motor4Bar_1.get_position() > target - 5))) {
-                delay(2);
-            }
-            intakeCurrentPosition = newState;
         }
 
-        cout << motor4Bar_1.get_torque() << "\t" << motor4Bar_1.get_actual_velocity() << "\t" << motor4Bar_1.get_power() << "\t\t" << motor4Bar_2.get_torque() << "\t" << motor4Bar_2.get_actual_velocity() << "\t" << motor4Bar_2.get_power();
+        cout << motor4Bar_1.get_torque() << "\t" << motor4Bar_1.get_actual_velocity() << "\t" << motor4Bar_1.get_power() << "\t\t" << motor4Bar_2.get_torque() << "\t" << motor4Bar_2.get_actual_velocity() << "\t" << motor4Bar_2.get_power() << endl;
         delay(20);
-
-
-		break;
 	}
 }
