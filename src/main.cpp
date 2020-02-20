@@ -52,14 +52,14 @@ void initialize() {
     motorClaw.tare_position();
 
     //Limit voltage (or current ... set_current_limit)
-    motor4Bar_1.set_voltage_limit(5000); //mv
-    motor4Bar_2.set_voltage_limit(5000); //mv
-    motorClaw.set_voltage_limit(8000); //mv
+    motor4Bar_1.set_current_limit(5000); //mA
+    motor4Bar_2.set_current_limit(5000); //mA
+    motorClaw.set_voltage_limit(10000);
 
 //    motor4Bar_1.setTimeout(4, timeUnits::sec); //prevent overdriving
 //    motor4Bar_2.setTimeout(4, timeUnits::sec);
 
-    intake_Positions[INTAKE_GROUND] = motor4Bar_1.get_position();
+    intake_Positions[INTAKE_GROUND] = motor4Bar_1.get_position() - 5;
     intake_Positions[INTAKE_FLOOR2] = motor4Bar_1.get_position() + 160;
     intake_Positions[INTAKE_FLOOR3] = motor4Bar_1.get_position() + 210;
     intake_Positions[INTAKE_FLOOR4] = motor4Bar_1.get_position() + 340;
@@ -67,7 +67,8 @@ void initialize() {
 
     int init_height = 250;
     moveMotors(fourbar, 2, init_height, 80, true);
-    moveMotors(&motorClaw, 1, 135, 100, true);
+    delay(200);
+    moveMotors(&motorClaw, 1, 150, 100, true);
 
     clawOpenPos = motorClaw.get_position();
 
@@ -120,11 +121,11 @@ void opcontrol() {
                 delay(10);
             }
             clawClosed = !clawClosed;
-        }
-        if(clawClosed){
-            motorClaw.move_velocity(2);
-        } else {
-            motorClaw.move_absolute(clawOpenPos, 2);
+            if(clawClosed){
+                motorClaw.move_velocity(100);
+            } else {
+                motorClaw.move_absolute(clawOpenPos, 100);
+            }
         }
         /*
          * Move bar up / down when pressing up and down
