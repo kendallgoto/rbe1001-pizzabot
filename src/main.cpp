@@ -32,6 +32,7 @@ static Motor fourbar[2]{
 enum BarState {
     INTAKE_GROUND,
     INTAKE_FLOOR2,
+    INTAKE_PIZZERIA,
     INTAKE_FLOOR3,
     INTAKE_FLOOR4,
     INTAKE_FLOOR5,
@@ -39,7 +40,7 @@ enum BarState {
 };
 double intake_Positions[BARSTATE_NR_ITEMS];
 BarState intakeCurrentPosition;
-
+double intake_adjustment;
 
 double clawOpenPos;
 bool clawClosed = false;
@@ -54,16 +55,17 @@ void initialize() {
     //Limit voltage (or current ... set_current_limit)
     motor4Bar_1.set_current_limit(5000); //mA
     motor4Bar_2.set_current_limit(5000); //mA
-    motorClaw.set_voltage_limit(10000);
+    motorClaw.set_voltage_limit(8000);
 
 //    motor4Bar_1.setTimeout(4, timeUnits::sec); //prevent overdriving
 //    motor4Bar_2.setTimeout(4, timeUnits::sec);
 
     intake_Positions[INTAKE_GROUND] = motor4Bar_1.get_position() - 5;
-    intake_Positions[INTAKE_FLOOR2] = motor4Bar_1.get_position() + 160;
-    intake_Positions[INTAKE_FLOOR3] = motor4Bar_1.get_position() + 210;
-    intake_Positions[INTAKE_FLOOR4] = motor4Bar_1.get_position() + 340;
-    intake_Positions[INTAKE_FLOOR5] = motor4Bar_1.get_position() + 510;
+    intake_Positions[INTAKE_FLOOR2] = motor4Bar_1.get_position() + 210;
+    intake_Positions[INTAKE_PIZZERIA] = motor4Bar_1.get_position() + 335;
+    intake_Positions[INTAKE_FLOOR3] = motor4Bar_1.get_position() + 355;
+    intake_Positions[INTAKE_FLOOR4] = motor4Bar_1.get_position() + 470;
+    intake_Positions[INTAKE_FLOOR5] = motor4Bar_1.get_position() + 640;
 
     int init_height = 250;
     moveMotors(fourbar, 2, init_height, 80, true);
@@ -128,6 +130,16 @@ void opcontrol() {
             }
         }
         /*
+         * Move the bar to pizzeria pickup window
+         */
+        if(ctrl.get_digital(E_CONTROLLER_DIGITAL_X)) {
+            while(ctrl.get_digital(E_CONTROLLER_DIGITAL_X)) {
+                delay(10);
+            }
+            moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, false);
+            intakeCurrentPosition = INTAKE_PIZZERIA;
+        }
+        /*
          * Move bar up / down when pressing up and down
          */
         int barDirection = 0;
@@ -140,13 +152,31 @@ void opcontrol() {
         }
         if(barDirection != 0) {
             int resultingChange = (((int)intakeCurrentPosition) + barDirection);
+            if(resultingChange == INTAKE_PIZZERIA)
+                resultingChange++;
             if(resultingChange >= 0 && resultingChange < BARSTATE_NR_ITEMS) {
+                intake_adjustment = 0;
                 BarState newState = (BarState)resultingChange;
                 double target = intake_Positions[newState];
                 moveMotors(fourbar, 2, target, 80, false);
                 intakeCurrentPosition = newState;
             }
         }
+        /*
+         * Just in case, allow for micro adjustments with the bumpers
+         */
+        if(ctrl.get_digital(E_CONTROLLER_DIGITAL_L2)) {
+            while(ctrl.get_digital(E_CONTROLLER_DIGITAL_L2)) delay(20);
+            double target = intake_adjustment += 5;
+            moveMotors(fourbar, 2, target, 80, false);
+            intake_adjustment = target;
+        } else if(ctrl.get_digital(E_CONTROLLER_DIGITAL_R2)) {
+            while(ctrl.get_digital(E_CONTROLLER_DIGITAL_R2)) delay(20);
+            double target = intake_adjustment -= 5;
+            moveMotors(fourbar, 2, target, 80, false);
+            intake_adjustment = target;
+        }
+
         cout << motor4Bar_1.get_torque() << "\t" << motor4Bar_1.get_actual_velocity() << "\t" << motor4Bar_1.get_power() << "\t\t" << motor4Bar_2.get_torque() << "\t" << motor4Bar_2.get_actual_velocity() << "\t" << motor4Bar_2.get_power() << endl;
         delay(20);
 	}
