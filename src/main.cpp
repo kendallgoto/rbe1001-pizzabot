@@ -5,30 +5,21 @@ Greg Lewin
 Pizza Bot
 */
 
+// Libraries
 #include "main.h"
 using namespace pros;
 #include <array>
 
+// Port Numbers for Motors
 #define LEFT_WHEEL_PORT 1
 #define RIGHT_WHEEL_PORT 2
 #define BAR_1_PORT 3
 #define BAR_2_PORT 4
 #define CLAW_PORT 5
 
+// State enumerations
 enum CurrentState { SETUP, READY, MANUAL, AUTO};
 enum AutonomousState { IDLE, SEEKING, DELIVERING };
-
-//pros::brain      Brain;
-Motor      motorLeft (LEFT_WHEEL_PORT, E_MOTOR_GEARSET_18, true, E_MOTOR_ENCODER_DEGREES);
-Motor      motorRight(RIGHT_WHEEL_PORT, E_MOTOR_GEARSET_18, false, E_MOTOR_ENCODER_DEGREES);
-Motor      motor4Bar_1(BAR_1_PORT, E_MOTOR_GEARSET_18, false, E_MOTOR_ENCODER_DEGREES);
-Motor      motor4Bar_2(BAR_2_PORT, E_MOTOR_GEARSET_18, false, E_MOTOR_ENCODER_DEGREES);
-Motor      motorClaw(CLAW_PORT, E_MOTOR_GEARSET_18, true, E_MOTOR_ENCODER_DEGREES);
-Controller ctrl(pros::E_CONTROLLER_MASTER);
-static Motor fourbar[2]{
-    motor4Bar_1,
-    motor4Bar_2
-};
 enum BarState {
     INTAKE_GROUND,
     INTAKE_FLOOR2,
@@ -38,28 +29,50 @@ enum BarState {
     INTAKE_FLOOR5,
     BARSTATE_NR_ITEMS
 };
-double intake_Positions[BARSTATE_NR_ITEMS];
-BarState intakeCurrentPosition;
-double intake_adjustment;
 
-double clawOpenPos;
-bool clawClosed = false;
+// region config_globals
+Motor      motorLeft (LEFT_WHEEL_PORT, E_MOTOR_GEARSET_18, true, E_MOTOR_ENCODER_DEGREES);
+Motor      motorRight(RIGHT_WHEEL_PORT, E_MOTOR_GEARSET_18, false, E_MOTOR_ENCODER_DEGREES);
+Motor      motor4Bar_1(BAR_1_PORT, E_MOTOR_GEARSET_18, false, E_MOTOR_ENCODER_DEGREES);
+Motor      motor4Bar_2(BAR_2_PORT, E_MOTOR_GEARSET_18, false, E_MOTOR_ENCODER_DEGREES);
+Motor      motorClaw(CLAW_PORT, E_MOTOR_GEARSET_18, true, E_MOTOR_ENCODER_DEGREES);
+Controller ctrl(pros::E_CONTROLLER_MASTER);
+
+// global variables
+
+static Motor fourbar[2]{ // Array of fourbar Motors
+    motor4Bar_1,
+    motor4Bar_2
+};
+
+
+double intake_Positions[BARSTATE_NR_ITEMS]; // Array of BarStates for intake positions
+BarState intakeCurrentPosition; // Variable to keep track of current BarState
+double intake_adjustment;
+double clawOpenPos; // Variable to store the position of claw when it is open
+bool clawClosed = false; // Variable to keep track of claw's state, true for closed, false otherwise
+
+// Function headers
 void moveMotors(Motor motorArray[], int size, double position, double velocity, bool blocking);
 
+/*
+ * Main Function
+ */
 void initialize() {
-    //Assume four bar is reset to floor
-    motor4Bar_1.tare_position();
+    //Assume four bar is reset to floor and set absolute zero for both 4 bar and claw motors 
+    motor4Bar_1.tare_position(); 
     motor4Bar_2.tare_position();
     motorClaw.tare_position();
 
     //Limit voltage (or current ... set_current_limit)
     motor4Bar_1.set_current_limit(5000); //mA
     motor4Bar_2.set_current_limit(5000); //mA
-    motorClaw.set_voltage_limit(8000);
+    motorClaw.set_voltage_limit(8000); //mV
 
 //    motor4Bar_1.setTimeout(4, timeUnits::sec); //prevent overdriving
 //    motor4Bar_2.setTimeout(4, timeUnits::sec);
 
+    // setting encoder values with respect to motor4Bar_1 for intake positions
     intake_Positions[INTAKE_GROUND] = motor4Bar_1.get_position() - 5;
     intake_Positions[INTAKE_FLOOR2] = motor4Bar_1.get_position() + 210;
     intake_Positions[INTAKE_PIZZERIA] = motor4Bar_1.get_position() + 335;
@@ -67,6 +80,7 @@ void initialize() {
     intake_Positions[INTAKE_FLOOR4] = motor4Bar_1.get_position() + 470;
     intake_Positions[INTAKE_FLOOR5] = motor4Bar_1.get_position() + 640;
 
+    // Move 4Bar up, bring out the claw and reset the 4Bar to back to ground
     int init_height = 250;
     moveMotors(fourbar, 2, init_height, 80, true);
     delay(200);
@@ -74,25 +88,47 @@ void initialize() {
 
     clawOpenPos = motorClaw.get_position();
 
-    moveMotors(fourbar, 2, intake_Positions[INTAKE_GROUND], 80, true);
+    moveMotors(fourbar, 2, intake_Positions[INTAKE_GROUND], 80, true); 
     intakeCurrentPosition = INTAKE_GROUND;
 
-    cout << "Torque\tVelocity\tPower\t\tTorque\tVelocity\tPower" << endl;
+   
 
     opcontrol();
 }
 
+/*
+ *
+ */
 void disabled() {}
 
+/*
+ *
+ */
 void competition_initialize() {
 
 }
 
+/*
+ * Function to operate on Autonomous Mode
+ */
 void autonomous() {
-
+    /* STRATEGY */
+    /* Start from Pizzeria, Check for starting side (Left/Right), make adjustments and Pick up Pizza */
+    /* Drive to Faraday */
+    /* Place Pizza on Floor 2 */
+    /* Drive back to Pizzeria */
+    /* Pick up Pizza */
+    /* Drive to Faraday */
+    /* Place Pizza on Floor 3 */
+    /* Move to construction zone */
+    /* Go over the speed bump */
 }
 
+/*
+ * Function to operate on Teleoperation Mode
+ */
 void opcontrol() {
+    cout << "Torque\tVelocity\tPower\t\tTorque\tVelocity\tPower" << endl;
 	while (true) {
 	    /*
 	     * Assign Drive Factor based on L/R Triggers
@@ -115,6 +151,7 @@ void opcontrol() {
         int right = power - turn;
         motorLeft.move(left * driveFactor);
         motorRight.move(right * driveFactor);
+        
         /*
          * Toggle claw when pressing [A]
          */
@@ -129,6 +166,7 @@ void opcontrol() {
                 motorClaw.move_absolute(clawOpenPos, 100);
             }
         }
+
         /*
          * Move the bar to pizzeria pickup window
          */
@@ -139,6 +177,7 @@ void opcontrol() {
             moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, false);
             intakeCurrentPosition = INTAKE_PIZZERIA;
         }
+
         /*
          * Move bar up / down when pressing up and down
          */
@@ -150,10 +189,11 @@ void opcontrol() {
             while(ctrl.get_digital(E_CONTROLLER_DIGITAL_DOWN)) delay(20);
             barDirection = -1;
         }
-        if(barDirection != 0) {
+        if(barDirection != 0) { // if the UP or DOWN button is pressed 
             int resultingChange = (((int)intakeCurrentPosition) + barDirection);
-            if(resultingChange == INTAKE_PIZZERIA)
+            if(resultingChange == INTAKE_PIZZERIA){
                 resultingChange++;
+            }
             if(resultingChange >= 0 && resultingChange < BARSTATE_NR_ITEMS) {
                 intake_adjustment = 0;
                 BarState newState = (BarState)resultingChange;
@@ -162,6 +202,7 @@ void opcontrol() {
                 intakeCurrentPosition = newState;
             }
         }
+
         /*
          * Just in case, allow for micro adjustments with the bumpers
          */
@@ -182,11 +223,14 @@ void opcontrol() {
 	}
 }
 
+/*
+ * Function to move a collection of motors at a specified position and with a specified velocity
+ */
 void moveMotors(Motor motorArray[], int size, double position, double velocity, bool blocking) {
-    for(int i = 0; i < size; i++) {
+    for(int i = 0; i < size; i++) { // move all individual motors in the array
         motorArray[i].move_absolute(position, velocity);
     }
-    if(blocking) {
+    if(blocking) { 
         while (!((motorArray[0].get_position() < position + 5) && (motorArray[0].get_position() > position - 5))) {
             delay(2);
         }
