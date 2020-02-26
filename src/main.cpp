@@ -17,6 +17,7 @@ using namespace pros;
 #define BAR_1_PORT 3
 #define BAR_2_PORT 4
 #define CLAW_PORT 5
+#define WINCH_PORT 6
 
 // State enumerations
 enum CurrentState { SETUP, READY, MANUAL, AUTO};
@@ -32,11 +33,12 @@ enum BarState {
 };
 
 // region config_globals
-Motor      motorLeft (LEFT_WHEEL_PORT, E_MOTOR_GEARSET_18, true, E_MOTOR_ENCODER_DEGREES);
-Motor      motorRight(RIGHT_WHEEL_PORT, E_MOTOR_GEARSET_18, false, E_MOTOR_ENCODER_DEGREES);
+Motor      motorLeft (LEFT_WHEEL_PORT, E_MOTOR_GEARSET_18, false, E_MOTOR_ENCODER_DEGREES);
+Motor      motorRight(RIGHT_WHEEL_PORT, E_MOTOR_GEARSET_18, true, E_MOTOR_ENCODER_DEGREES);
 Motor      motor4Bar_1(BAR_1_PORT, E_MOTOR_GEARSET_18, false, E_MOTOR_ENCODER_DEGREES);
 Motor      motor4Bar_2(BAR_2_PORT, E_MOTOR_GEARSET_18, false, E_MOTOR_ENCODER_DEGREES);
 Motor      motorClaw(CLAW_PORT, E_MOTOR_GEARSET_18, true, E_MOTOR_ENCODER_DEGREES);
+Motor      motorWinch(WINCH_PORT, E_MOTOR_GEARSET_18, true, E_MOTOR_ENCODER_DEGREES);
 Controller ctrl(pros::E_CONTROLLER_MASTER);
 
 // global variables
@@ -255,6 +257,17 @@ void opcontrol() {
         }
 
         /*
+         * Winch Test
+         */
+        if(ctrl.get_digital(E_CONTROLLER_DIGITAL_LEFT)) {
+            while(ctrl.get_digital(E_CONTROLLER_DIGITAL_LEFT)) {
+                delay(10);
+            }
+            motorWinch.move_velocity(100);
+            delay(500);
+            motorWinch.move_velocity(0);
+        }
+        /*
          * Move the bar to pizzeria pickup window
          */
         if(ctrl.get_digital(E_CONTROLLER_DIGITAL_X)) {
@@ -380,7 +393,7 @@ void turn(double angle) {
     //diameter: 10.16cm
     const double diameter = 4;
     const double track = 11.0236;
-    const double gearRatio = 5;
+    const double gearRatio = 1;
    
     double rot = (angle * track) / diameter;
 
