@@ -117,16 +117,78 @@ void competition_initialize() {
 void autonomous() {
     /* Strategy -- CDR */
     /* Start from Pizzeria, Check for starting side (Left/Right), make adjustments and Pick up Pizza */
+
+    // starting at 40 cm away from pizza slot
+    moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, true, false, false); // set 4 bar to Pizzeria slot
+    motorClaw.move_velocity(100); // Grab pizza
+    drive(5, false); // Drive Back
+    turn (180); 
+    
     /* Drive to Faraday */
+
+    drive(100,true); 
+    turn (270);
+    drive (50, true);
+
     /* Place Pizza on Floor 2 */
+
+    moveMotors(fourbar, 2, intake_Positions[INTAKE_FLOOR2], 80, true, false, false); // set 4 bar to Floor 2
+    drive(5, true);
+    motorClaw.move_absolute(clawOpenPos, 100); // open claw and deliver pizza
+
     /* Drive back to Pizzeria */
+    
+    drive(5, false);
+    moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, true, false, false); // set 4 bar to Pizzeria slot
+    turn(180);
+    drive (50, true);
+    turn (90);
+    drive (105, true);
+
     /* Pick up Pizza */
+
+    motorClaw.move_velocity(100); 
+    drive(5, false); // Drive Back
+    turn (180); 
+
     /* Drive to Faraday */
+
+    drive(100,true); 
+    turn (270);
+    drive (50, true);
+
     /* Place Pizza on Floor 3 */
+
+    moveMotors(fourbar, 2, intake_Positions[INTAKE_FLOOR3], 80, true, false, false); // set 4 bar to Floor 3
+    drive(5, true);
+    motorClaw.move_absolute(clawOpenPos, 100); // open claw and deliver pizza
+
     /* Drive back to Pizzeria */
+
+    drive(5, false);
+    moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, true, false, false); // set 4 bar to Pizzeria slot
+    turn(180);
+    drive (50, true);
+    turn (90);
+    drive (105, true);
+
     /* Pick up Pizza */
+
+    motorClaw.move_velocity(100); 
+    drive(5, false); // Drive Back
+    turn (180); 
+
     /* Drive to Faraday */
+
+    drive(100,true); 
+    turn (270);
+    drive (50, true);
+
     /* Place Pizza on Floor 4 */
+
+    moveMotors(fourbar, 2, intake_Positions[INTAKE_FLOOR4], 80, true, false, false); // set 4 bar to Floor 4
+    drive(5, true);
+    motorClaw.move_absolute(clawOpenPos, 100);
 
     /* STRATEGY -- OED */
     /* Start from Pizzeria, Check for starting side (Left/Right), make adjustments and Pick up Pizza */
