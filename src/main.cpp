@@ -9,6 +9,7 @@ Pizza Bot
 #include "main.h"
 using namespace pros;
 #include <array>
+#include <string>
 
 // Port Numbers for Motors
 #define LEFT_WHEEL_PORT 1
@@ -63,7 +64,9 @@ void turn(double angle);
  * Main Function
  */
 void initialize() {
-    //Assume four bar is reset to floor and set absolute zero for both 4 bar and claw motors 
+    //Assume four bar is reset to floor and set absolute zero for both 4 bar and claw motors
+    pros::lcd::initialize();
+    pros::lcd::set_text(1, "Initializing ...!");
     motor4Bar_1.tare_position(); 
     motor4Bar_2.tare_position();
     motorClaw.tare_position();
@@ -95,8 +98,7 @@ void initialize() {
     moveMotors(fourbar, 2, intake_Positions[INTAKE_GROUND], 80, true, false, false); 
     intakeCurrentPosition = INTAKE_GROUND;
 
-   
-
+    pros::lcd::set_text(1, "INITIALIZED!");
     opcontrol();
 }
 
@@ -302,8 +304,12 @@ void opcontrol() {
             moveMotors(fourbar, 2, target, 80, false, false, false);
             intake_adjustment = target;
         }
-
-        cout << motor4Bar_1.get_torque() << "\t" << motor4Bar_1.get_actual_velocity() << "\t" << motor4Bar_1.get_power() << "\t\t" << motor4Bar_2.get_torque() << "\t" << motor4Bar_2.get_actual_velocity() << "\t" << motor4Bar_2.get_power() << endl;
+        //Debugging Output
+        pros::lcd::set_text(1, "Claw Temp\t\t" + std::string(to_string(motorClaw.get_temperature())));
+        pros::lcd::set_text(2, "Claw THROTTLED\t\t" + std::string(to_string(motorClaw.is_over_temp())));
+        pros::lcd::set_text(3, "4Bar1 THROTTLED\t\t" + std::string(to_string(motor4Bar_1.is_over_temp())));
+        pros::lcd::set_text(4, "4Bar2 THROTTLED\t\t" + std::string(to_string(motor4Bar_2.is_over_temp())));
+        pros::lcd::set_text(5, "BATTERY\t\t" + std::string(to_string(pros::battery::get_capacity())));
         delay(20);
 	}
 }
