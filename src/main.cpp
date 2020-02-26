@@ -40,12 +40,12 @@ Controller ctrl(pros::E_CONTROLLER_MASTER);
 
 // global variables
 
-static Motor fourbar[2]{ // Array of fourbar Motors
+Motor fourbar[2] = { // Array of fourbar Motors
     motor4Bar_1,
     motor4Bar_2
 };
 
-Motor driveMotors[2]= {motorLeft, motorRight}; // Array of drive motors
+Motor driveMotors[2] = {motorLeft, motorRight}; // Array of drive motors
 
 
 double intake_Positions[BARSTATE_NR_ITEMS]; // Array of BarStates for intake positions
@@ -71,7 +71,7 @@ void initialize() {
     //Limit voltage (or current ... set_current_limit)
     motor4Bar_1.set_current_limit(5000); //mA
     motor4Bar_2.set_current_limit(5000); //mA
-    motorClaw.set_voltage_limit(8000); //mV
+    motorClaw.set_voltage_limit(6000); //mV
 
 //    motor4Bar_1.setTimeout(4, timeUnits::sec); //prevent overdriving
 //    motor4Bar_2.setTimeout(4, timeUnits::sec);
@@ -103,12 +103,16 @@ void initialize() {
 /*
  *
  */
-void disabled() {}
+void disabled() {
+
+
+}
 
 /*
  *
  */
 void competition_initialize() {
+
 }
 
 /*
@@ -120,7 +124,9 @@ void autonomous() {
 
     // starting at 40 cm away from pizza slot
     moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, true, false, false); // set 4 bar to Pizzeria slot
+    delay(3000);
     motorClaw.move_velocity(100); // Grab pizza
+    delay(2000);
     drive(5, false); // Drive Back
     turn (180); 
     
@@ -305,33 +311,33 @@ void opcontrol() {
 /*
  * Function to move a collection of motors at a specified position and with a specified velocity
  */
-void moveMotors(Motor motorArray[], int size, double position, double velocity, bool blocking, bool isDrive, bool isTurn) {
-    if(isDrive){ // if we are driving
+void moveMotors(Motor motorArray[], int size, double position, double velocity, bool shouldBlock, bool isRelative, bool isTurning) {
+    if (isRelative) { // if we are driving
         double curPosition = motorArray[0].get_position();
         for(int i = 0; i < size; i++) { // move all individual motors in the array
             motorArray[i].move_relative(position, velocity);
         }
-        while (!((motorArray[0].get_position() < position - curPosition + 5 ) && (motorArray[0].get_position() > position - curPosition - 5))) {
-            delay(2);
+        while(motorArray[0].get_position() - curPosition > position - 5 || motorArray[0].get_position() - curPosition < position + 5) {
+            delay(10);
         }
     }
-    else if (isTurn){ // if we are turning
+    else if(isTurning) { // if we are turning
         double curPosition = motorArray[0].get_position();
         for(int i = 0; i < size; i++) { // move all individual motors in the array
             motorArray[i].move_relative(position, velocity);
         }
-        while (!((motorArray[0].get_position() < position - curPosition + 5 ) && (motorArray[0].get_position() > position - curPosition - 5))) {
-            delay(2);
+        //TODO: validate if this will actually stop blocking given the correct motor
+        while(motorArray[0].get_position() - curPosition > position - 5 || motorArray[0].get_position() - curPosition < position + 5) {
+            delay(10);
         }
-
     }
-    else{
+    else {
         for(int i = 0; i < size; i++) { // move all individual motors in the array
             motorArray[i].move_absolute(position, velocity);
         }
-        if(blocking) { 
-            while (!((motorArray[0].get_position() < position + 5) && (motorArray[0].get_position() > position - 5))) {
-                delay(2);
+        if(shouldBlock) {
+            while(!((motorArray[0].get_position() < position + 5) && (motorArray[0].get_position() > position - 5))) {
+                delay(10);
             }
         }
     }
@@ -371,9 +377,7 @@ void turn(double angle) {
     const double gearRatio = 5;
    
     double rot = (angle * track) / diameter;
-    
-    //motorLeft.startRotateTo(rot*gearRatio, deg);
-    //motorRight.rotateTo(-rot*gearRatio, deg);
 
     moveMotors(driveMotors,2, rot*gearRatio, 80, true, false, true);
+
 }
