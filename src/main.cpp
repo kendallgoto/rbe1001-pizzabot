@@ -45,6 +45,8 @@ static Motor fourbar[2]{ // Array of fourbar Motors
     motor4Bar_2
 };
 
+Motor driveMotors[2]= {motorLeft, motorRight}; // Array of drive motors
+
 
 double intake_Positions[BARSTATE_NR_ITEMS]; // Array of BarStates for intake positions
 BarState intakeCurrentPosition; // Variable to keep track of current BarState
@@ -53,7 +55,9 @@ double clawOpenPos; // Variable to store the position of claw when it is open
 bool clawClosed = false; // Variable to keep track of claw's state, true for closed, false otherwise
 
 // Function headers
-void moveMotors(Motor motorArray[], int size, double position, double velocity, bool blocking);
+void moveMotors(Motor motorArray[], int size, double position, double velocity, bool blocking, bool isDrive, bool isTurn);
+void drive(double distance, bool forward);
+void turn(double angle);
 
 /*
  * Main Function
@@ -82,13 +86,13 @@ void initialize() {
 
     // Move 4Bar up, bring out the claw and reset the 4Bar to back to ground
     int init_height = 250;
-    moveMotors(fourbar, 2, init_height, 80, true);
+    moveMotors(fourbar, 2, init_height, 80, true, false, false);
     delay(200);
-    moveMotors(&motorClaw, 1, 150, 100, true);
+    moveMotors(&motorClaw, 1, 150, 100, true, false, false);
 
     clawOpenPos = motorClaw.get_position();
 
-    moveMotors(fourbar, 2, intake_Positions[INTAKE_GROUND], 80, true); 
+    moveMotors(fourbar, 2, intake_Positions[INTAKE_GROUND], 80, true, false, false); 
     intakeCurrentPosition = INTAKE_GROUND;
 
    
@@ -134,7 +138,7 @@ void autonomous() {
     /* Place Pizza on Floor 3 */
     /* Move to construction zone */
     /* Go over the speed bump */
-    motorLeft.set_pos_pid_full()
+    //motorLeft.set_pos_pid_full();
 }
 
 /*
@@ -187,7 +191,7 @@ void opcontrol() {
             while(ctrl.get_digital(E_CONTROLLER_DIGITAL_X)) {
                 delay(10);
             }
-            moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, false);
+            moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, false, false, false);
             intakeCurrentPosition = INTAKE_PIZZERIA;
         }
 
@@ -211,7 +215,7 @@ void opcontrol() {
                 intake_adjustment = 0;
                 BarState newState = (BarState)resultingChange;
                 double target = intake_Positions[newState];
-                moveMotors(fourbar, 2, target, 80, false);
+                moveMotors(fourbar, 2, target, 80, false, false, false);
                 intakeCurrentPosition = newState;
             }
         }
@@ -222,12 +226,12 @@ void opcontrol() {
         if(ctrl.get_digital(E_CONTROLLER_DIGITAL_L2)) {
             while(ctrl.get_digital(E_CONTROLLER_DIGITAL_L2)) delay(20);
             double target = intake_adjustment += 5;
-            moveMotors(fourbar, 2, target, 80, false);
+            moveMotors(fourbar, 2, target, 80, false, false, false);
             intake_adjustment = target;
         } else if(ctrl.get_digital(E_CONTROLLER_DIGITAL_R2)) {
             while(ctrl.get_digital(E_CONTROLLER_DIGITAL_R2)) delay(20);
             double target = intake_adjustment -= 5;
-            moveMotors(fourbar, 2, target, 80, false);
+            moveMotors(fourbar, 2, target, 80, false, false, false);
             intake_adjustment = target;
         }
 
@@ -239,13 +243,75 @@ void opcontrol() {
 /*
  * Function to move a collection of motors at a specified position and with a specified velocity
  */
-void moveMotors(Motor motorArray[], int size, double position, double velocity, bool blocking) {
-    for(int i = 0; i < size; i++) { // move all individual motors in the array
-        motorArray[i].move_absolute(position, velocity);
-    }
-    if(blocking) { 
-        while (!((motorArray[0].get_position() < position + 5) && (motorArray[0].get_position() > position - 5))) {
+void moveMotors(Motor motorArray[], int size, double position, double velocity, bool blocking, bool isDrive, bool isTurn) {
+    if(isDrive){ // if we are driving
+        double curPosition = motorArray[0].get_position();
+        for(int i = 0; i < size; i++) { // move all individual motors in the array
+            motorArray[i].move_relative(position, velocity);
+        }
+        while (!((motorArray[0].get_position() < position - curPosition + 5 ) && (motorArray[0].get_position() > position - curPosition - 5))) {
             delay(2);
         }
     }
+    else if (isTurn){ // if we are turning
+        double curPosition = motorArray[0].get_position();
+        for(int i = 0; i < size; i++) { // move all individual motors in the array
+            motorArray[i].move_relative(position, velocity);
+        }
+        while (!((motorArray[0].get_position() < position - curPosition + 5 ) && (motorArray[0].get_position() > position - curPosition - 5))) {
+            delay(2);
+        }
+
+    }
+    else{
+        for(int i = 0; i < size; i++) { // move all individual motors in the array
+            motorArray[i].move_absolute(position, velocity);
+        }
+        if(blocking) { 
+            while (!((motorArray[0].get_position() < position + 5) && (motorArray[0].get_position() > position - 5))) {
+                delay(2);
+            }
+        }
+    }
+    
+}
+
+/*
+ * Routine to drive a particular distance
+ */
+void drive(double distance, bool forward) {
+    //theta/360 * 2 * pi * r
+    //wheel diameter: 10.16cm
+    const double diameter = 4;
+    const double gearRatio = 1;
+
+    int directionMult;
+    if(forward)
+        directionMult = 1;
+    else
+        directionMult = -1;
+       
+    double delta = (360 * distance) / (diameter * M_PI);
+    //motorLeft.startRotateTo(delta*gearRatio*directionMult, deg);
+    //motorRight.rotateTo(delta*gearRatio*directionMult, deg);
+    moveMotors(driveMotors,2,delta*gearRatio*directionMult,80, true,true, false);   
+}
+
+/*
+ * Routine to turn the robot
+ */
+void turn(double angle) {
+    //diameter * theta * pi / t
+    //wheel track: 28cm
+    //diameter: 10.16cm
+    const double diameter = 4;
+    const double track = 11.0236;
+    const double gearRatio = 5;
+   
+    double rot = (angle * track) / diameter;
+    
+    //motorLeft.startRotateTo(rot*gearRatio, deg);
+    //motorRight.rotateTo(-rot*gearRatio, deg);
+
+    moveMotors(driveMotors,2, rot*gearRatio, 80, true, false, true);
 }
