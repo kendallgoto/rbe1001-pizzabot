@@ -105,14 +105,26 @@ void disabled() {}
  *
  */
 void competition_initialize() {
-
 }
 
 /*
  * Function to operate on Autonomous Mode
  */
 void autonomous() {
-    /* STRATEGY */
+    /* Strategy -- CDR */
+    /* Start from Pizzeria, Check for starting side (Left/Right), make adjustments and Pick up Pizza */
+    /* Drive to Faraday */
+    /* Place Pizza on Floor 2 */
+    /* Drive back to Pizzeria */
+    /* Pick up Pizza */
+    /* Drive to Faraday */
+    /* Place Pizza on Floor 3 */
+    /* Drive back to Pizzeria */
+    /* Pick up Pizza */
+    /* Drive to Faraday */
+    /* Place Pizza on Floor 4 */
+
+    /* STRATEGY -- OED */
     /* Start from Pizzeria, Check for starting side (Left/Right), make adjustments and Pick up Pizza */
     /* Drive to Faraday */
     /* Place Pizza on Floor 2 */
@@ -122,6 +134,7 @@ void autonomous() {
     /* Place Pizza on Floor 3 */
     /* Move to construction zone */
     /* Go over the speed bump */
+    motorLeft.set_pos_pid_full()
 }
 
 /*
