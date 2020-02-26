@@ -292,7 +292,7 @@ void opcontrol() {
         if(barDirection != 0) { // if the UP or DOWN button is pressed 
             int resultingChange = (((int)intakeCurrentPosition) + barDirection);
             if(resultingChange == INTAKE_PIZZERIA){
-                resultingChange++;
+                resultingChange += barDirection;
             }
             if(resultingChange >= 0 && resultingChange < BARSTATE_NR_ITEMS) {
                 intake_adjustment = 0;
