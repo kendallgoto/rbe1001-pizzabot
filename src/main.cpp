@@ -55,7 +55,7 @@ double clawOpenPos; // Variable to store the position of claw when it is open
 bool clawClosed = false; // Variable to keep track of claw's state, true for closed, false otherwise
 
 // Function headers
-void moveMotors(Motor motorArray[], int size, double position, double velocity, bool blocking, bool isDrive, bool isTurn);
+void moveMotors(Motor motorArray[], int size, double position, double velocity, bool shouldBlock, bool isRelative, bool isTurning);
 void drive(double distance, bool forward);
 void turn(double angle);
 
@@ -87,7 +87,7 @@ void initialize() {
     // Move 4Bar up, bring out the claw and reset the 4Bar to back to ground
     int init_height = 250;
     moveMotors(fourbar, 2, init_height, 80, true, false, false);
-    delay(200);
+    delay(400);
     moveMotors(&motorClaw, 1, 150, 100, true, false, false);
 
     clawOpenPos = motorClaw.get_position();
