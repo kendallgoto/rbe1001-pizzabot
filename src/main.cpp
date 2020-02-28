@@ -76,7 +76,7 @@ void initialize() {
     //Limit voltage (or current ... set_current_limit)
     motor4Bar_1.set_current_limit(5000); //mA
     motor4Bar_2.set_current_limit(5000); //mA
-    motorClaw.set_voltage_limit(6000); //mV
+    motorClaw.set_current_limit(5000); //mV
 
 //    motor4Bar_1.setTimeout(4, timeUnits::sec); //prevent overdriving
 //    motor4Bar_2.setTimeout(4, timeUnits::sec);
@@ -127,78 +127,40 @@ void autonomous() {
     /* Start from Pizzeria, Check for starting side (Left/Right), make adjustments and Pick up Pizza */
 
     // starting at 40 cm away from pizza slot
+    delay(500);
     moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, true, false, false); // set 4 bar to Pizzeria slot
-    delay(3000);
+    delay(500);
     motorClaw.move_velocity(100); // Grab pizza
-    delay(2000);
-    drive(5, false); // Drive Back
-    turn (180); 
-    
+    delay(500);
+    moveMotors(fourbar, 2, intake_Positions[INTAKE_GROUND], 80, true, false, false); // set 4 bar to ground
     /* Drive to Faraday */
+    delay(500);
 
-    drive(100,true); 
-    turn (270);
-    drive (50, true);
+    drive(100,false);
+    delay(500);
+    turn (90);
+    delay(500);
+
+    drive (12, true);
 
     /* Place Pizza on Floor 2 */
 
     moveMotors(fourbar, 2, intake_Positions[INTAKE_FLOOR2], 80, true, false, false); // set 4 bar to Floor 2
-    drive(5, true);
+    delay(500);
+    drive(20, true);
+    delay(500);
     motorClaw.move_absolute(clawOpenPos, 100); // open claw and deliver pizza
 
     /* Drive back to Pizzeria */
-    
-    drive(5, false);
+    delay(500);
+
+    drive(30, false);
+    delay(500);
+    moveMotors(fourbar, 2, intake_Positions[INTAKE_GROUND], 80, true, false, false); // set 4 bar to Pizzeria slot
+    delay(500);
+    turn(-90);
     moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, true, false, false); // set 4 bar to Pizzeria slot
-    turn(180);
-    drive (50, true);
-    turn (90);
-    drive (105, true);
-
-    /* Pick up Pizza */
-
-    motorClaw.move_velocity(100); 
-    drive(5, false); // Drive Back
-    turn (180); 
-
-    /* Drive to Faraday */
-
-    drive(100,true); 
-    turn (270);
-    drive (50, true);
-
-    /* Place Pizza on Floor 3 */
-
-    moveMotors(fourbar, 2, intake_Positions[INTAKE_FLOOR3], 80, true, false, false); // set 4 bar to Floor 3
-    drive(5, true);
-    motorClaw.move_absolute(clawOpenPos, 100); // open claw and deliver pizza
-
-    /* Drive back to Pizzeria */
-
-    drive(5, false);
-    moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, true, false, false); // set 4 bar to Pizzeria slot
-    turn(180);
-    drive (50, true);
-    turn (90);
-    drive (105, true);
-
-    /* Pick up Pizza */
-
-    motorClaw.move_velocity(100); 
-    drive(5, false); // Drive Back
-    turn (180); 
-
-    /* Drive to Faraday */
-
-    drive(100,true); 
-    turn (270);
-    drive (50, true);
-
-    /* Place Pizza on Floor 4 */
-
-    moveMotors(fourbar, 2, intake_Positions[INTAKE_FLOOR4], 80, true, false, false); // set 4 bar to Floor 4
-    drive(5, true);
-    motorClaw.move_absolute(clawOpenPos, 100);
+    drive (85, true);
 
     /* STRATEGY -- OED */
     /* Start from Pizzeria, Check for starting side (Left/Right), make adjustments and Pick up Pizza */
@@ -219,9 +181,18 @@ void autonomous() {
 void opcontrol() {
     cout << "Torque\tVelocity\tPower\t\tTorque\tVelocity\tPower" << endl;
 	while (true) {
-	    /*
-	     * Assign Drive Factor based on L/R Triggers
-	     */
+
+        if(ctrl.get_digital(E_CONTROLLER_DIGITAL_B)) {
+            while(ctrl.get_digital(E_CONTROLLER_DIGITAL_B)) {
+                delay(10);
+            }
+            turn(180);
+        }
+
+
+        /*
+         * Assign Drive Factor based on L/R Triggers
+         */
 	    double driveFactor;
         if(ctrl.get_digital(E_CONTROLLER_DIGITAL_L1) && !ctrl.get_digital(E_CONTROLLER_DIGITAL_R1)) {
             driveFactor = 1.0;
@@ -276,6 +247,14 @@ void opcontrol() {
             }
             moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, false, false, false);
             intakeCurrentPosition = INTAKE_PIZZERIA;
+        }
+
+        if(ctrl.get_digital(E_CONTROLLER_DIGITAL_Y)) {
+            while(ctrl.get_digital(E_CONTROLLER_DIGITAL_Y)) {
+                delay(10);
+            }
+
+            autonomous();
         }
 
         /*
@@ -336,17 +315,15 @@ void moveMotors(Motor motorArray[], int size, double position, double velocity, 
         for(int i = 0; i < size; i++) { // move all individual motors in the array
             motorArray[i].move_relative(position, velocity);
         }
-        while(motorArray[0].get_position() - curPosition > position - 5 || motorArray[0].get_position() - curPosition < position + 5) {
+        while(motorArray[0].get_position() - curPosition < position - 5 || motorArray[0].get_position() - curPosition > position + 5) {
             delay(10);
         }
     }
     else if(isTurning) { // if we are turning
         double curPosition = motorArray[0].get_position();
-        for(int i = 0; i < size; i++) { // move all individual motors in the array
-            motorArray[i].move_relative(position, velocity);
-        }
-        //TODO: validate if this will actually stop blocking given the correct motor
-        while(motorArray[0].get_position() - curPosition > position - 5 || motorArray[0].get_position() - curPosition < position + 5) {
+        motorArray[0].move_relative(position, velocity);
+        motorArray[1].move_relative(-1*position, velocity);
+        while(motorArray[0].get_position() - curPosition < position - 5 || motorArray[0].get_position() - curPosition > position + 5) {
             delay(10);
         }
     }
@@ -369,7 +346,7 @@ void moveMotors(Motor motorArray[], int size, double position, double velocity, 
 void drive(double distance, bool forward) {
     //theta/360 * 2 * pi * r
     //wheel diameter: 10.16cm
-    const double diameter = 4;
+    const double diameter = 10.16;
     const double gearRatio = 1;
 
     int directionMult;
@@ -381,7 +358,7 @@ void drive(double distance, bool forward) {
     double delta = (360 * distance) / (diameter * M_PI);
     //motorLeft.startRotateTo(delta*gearRatio*directionMult, deg);
     //motorRight.rotateTo(delta*gearRatio*directionMult, deg);
-    moveMotors(driveMotors,2,delta*gearRatio*directionMult,80, true,true, false);   
+    moveMotors(driveMotors,2,delta*gearRatio*directionMult,60, true,true, false);
 }
 
 /*
@@ -389,14 +366,14 @@ void drive(double distance, bool forward) {
  */
 void turn(double angle) {
     //diameter * theta * pi / t
-    //wheel track: 28cm
+    //wheel track: 29cm
     //diameter: 10.16cm
-    const double diameter = 4;
-    const double track = 11.0236;
+    const double diameter = 10.16;
+    const double track = 29;
     const double gearRatio = 1;
    
     double rot = (angle * track) / diameter;
 
-    moveMotors(driveMotors,2, rot*gearRatio, 80, true, false, true);
+    moveMotors(driveMotors,2, rot*gearRatio, 60, true, false, true);
 
 }
