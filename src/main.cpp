@@ -83,7 +83,7 @@ void initialize() {
 
     // setting encoder values with respect to motor4Bar_1 for intake positions
     intake_Positions[INTAKE_GROUND] = motor4Bar_1.get_position() - 5;
-    intake_Positions[INTAKE_FLOOR2] = motor4Bar_1.get_position() + 250;
+    intake_Positions[INTAKE_FLOOR2] = motor4Bar_1.get_position() + 245;
     intake_Positions[INTAKE_PIZZERIA] = motor4Bar_1.get_position() + 340;
     intake_Positions[INTAKE_FLOOR3] = motor4Bar_1.get_position() + 355;
     intake_Positions[INTAKE_FLOOR4] = motor4Bar_1.get_position() + 470;
@@ -136,42 +136,67 @@ void autonomous() {
         delay(1000);
         moveMotors(fourbar, 2, intake_Positions[INTAKE_GROUND] + 80, 80, true, false, false); // set 4 bar to ground
         /* Drive to Faraday */
-        delay(500);
+        delay(100);
 
         drive(80, false);
-        delay(500);
+        delay(100);
         turn(90);
-        delay(500);
+        delay(100);
         drive(40, false);
-        delay(500);
+        delay(100);
         drive(45, true);
 
         /* Place Pizza on Floor 2 */
-        delay(500);
+        delay(100);
         moveMotors(fourbar, 2, intake_Positions[targetStates[currentState++]], 80, true, false, false); // set 4 bar to Floor 2
-        delay(500);
+        delay(100);
         drive(15, true);
-        delay(500);
+        delay(100);
         motorClaw.move_absolute(clawOpenPos, 100); // open claw and deliver pizza
 
         /* Drive back to Pizzeria */
-        delay(500);
+        delay(100);
 
-        drive(60, false);
-        delay(500);
+        drive(70, false);
+        delay(100);
         moveMotors(fourbar, 2, intake_Positions[INTAKE_GROUND] + 80, 80, true, false,
                    false); // set 4 bar to Ground 
-        delay(500);
+        delay(100);
         drive(25, true);
-        delay(500);
-        turn(-100);
-        delay(500);
+        delay(100);
+        turn(-105);
+        delay(100);
         moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, true, false, false); // set 4 bar to Pizzeria slot
+        delay(100);
         drive(73, true);
     }
 
     moveMotors(fourbar, 2, intake_Positions[INTAKE_GROUND] + 80, 80, true, false,
-                   false); // set 4 bar to Ground, so the current state isnt't INTAKE_PIZZERIA
+                   false);
+    delay(100);
+    drive(5, false);
+    delay(100);
+    turn(90);
+    delay(100);
+    drive(40, false);
+    delay(100);
+    drive(180, true);
+    delay(100);
+    turn(90);
+    delay(1000);
+    drive(50, false);
+    delay(1000);
+    moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, true, false, false);
+    //plow full speed to get front wheel on
+    moveMotors(driveMotors,2,1000,100, false,true, false);
+    delay(2000); //We SHOULD be up by now.
+    driveMotors[0].move(0);
+    driveMotors[1].move(0);
+    //then, turn by backing up the left wheel
+    turn(-15);
+    driveMotors[0].move_velocity(100);
+    driveMotors[1].move_velocity(70);
+    delay(800);
     /* STRATEGY -- OED */
     /* Start from Pizzeria, Check for starting side (Left/Right), make adjustments and Pick up Pizza */
     /* Drive to Faraday */
@@ -238,17 +263,6 @@ void opcontrol() {
         }
 
         /*
-         * Winch Test
-         */
-        if(ctrl.get_digital(E_CONTROLLER_DIGITAL_LEFT)) {
-            while(ctrl.get_digital(E_CONTROLLER_DIGITAL_LEFT)) {
-                delay(10);
-            }
-            motorWinch.move_velocity(100);
-            delay(500);
-            motorWinch.move_velocity(0);
-        }
-        /*
          * Move the bar to pizzeria pickup window
          */
         if(ctrl.get_digital(E_CONTROLLER_DIGITAL_X)) {
@@ -305,6 +319,28 @@ void opcontrol() {
             double target = intake_adjustment -= 5;
             moveMotors(fourbar, 2, target, 80, false, false, false);
             intake_adjustment = target;
+        }
+        if(ctrl.get_digital(E_CONTROLLER_DIGITAL_LEFT)) {
+            //set motor mode
+            motor4Bar_1.set_brake_mode(E_MOTOR_BRAKE_COAST);
+            motor4Bar_2.set_brake_mode(E_MOTOR_BRAKE_COAST);
+            motor4Bar_1.move_velocity(0);
+            motor4Bar_2.move_velocity(0);
+            motorWinch.move_velocity(100);
+            while(ctrl.get_digital(E_CONTROLLER_DIGITAL_LEFT)) {
+                delay(10);
+            }
+            motorWinch.move_velocity(0);
+        }
+        if(ctrl.get_digital(E_CONTROLLER_DIGITAL_RIGHT)) {
+            //set motor mode
+            motorWinch.move_velocity(-100);
+            while(ctrl.get_digital(E_CONTROLLER_DIGITAL_RIGHT)) {
+                delay(10);
+            }
+            motorWinch.move_velocity(0);
+            motor4Bar_1.set_brake_mode(E_MOTOR_BRAKE_HOLD);
+            motor4Bar_2.set_brake_mode(E_MOTOR_BRAKE_HOLD);
         }
         //Debugging Output
         pros::lcd::set_text(1, "Claw Temp\t\t" + std::string(to_string(motorClaw.get_temperature())));
