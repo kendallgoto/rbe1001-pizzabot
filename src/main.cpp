@@ -83,11 +83,11 @@ void initialize() {
 
     // setting encoder values with respect to motor4Bar_1 for intake positions
     intake_Positions[INTAKE_GROUND] = motor4Bar_1.get_position() - 5;
-    intake_Positions[INTAKE_FLOOR2] = motor4Bar_1.get_position() + 210;
-    intake_Positions[INTAKE_PIZZERIA] = motor4Bar_1.get_position() + 335;
+    intake_Positions[INTAKE_FLOOR2] = motor4Bar_1.get_position() + 250;
+    intake_Positions[INTAKE_PIZZERIA] = motor4Bar_1.get_position() + 340;
     intake_Positions[INTAKE_FLOOR3] = motor4Bar_1.get_position() + 355;
     intake_Positions[INTAKE_FLOOR4] = motor4Bar_1.get_position() + 470;
-    intake_Positions[INTAKE_FLOOR5] = motor4Bar_1.get_position() + 640;
+    intake_Positions[INTAKE_FLOOR5] = motor4Bar_1.get_position() + 645;
 
     // Move 4Bar up, bring out the claw and reset the 4Bar to back to ground
     int init_height = 250;
@@ -125,44 +125,50 @@ void competition_initialize() {
 void autonomous() {
     /* Strategy -- CDR */
     /* Start from Pizzeria, Check for starting side (Left/Right), make adjustments and Pick up Pizza */
+    BarState targetStates[3] = {INTAKE_FLOOR2, INTAKE_FLOOR3, INTAKE_FLOOR4};
+    int currentState = 0;
+    for(int i = 0; i < 3; i++) {
+        // starting at 40 cm away from pizza slot
+        delay(500);
+        moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, true, false, false); // set 4 bar to Pizzeria slot
+        delay(1000);
+        motorClaw.move_velocity(100); // Grab pizza
+        delay(1000);
+        moveMotors(fourbar, 2, intake_Positions[INTAKE_GROUND] + 80, 80, true, false, false); // set 4 bar to ground
+        /* Drive to Faraday */
+        delay(500);
 
-    // starting at 40 cm away from pizza slot
-    delay(500);
-    moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, true, false, false); // set 4 bar to Pizzeria slot
-    delay(500);
-    motorClaw.move_velocity(100); // Grab pizza
-    delay(500);
-    moveMotors(fourbar, 2, intake_Positions[INTAKE_GROUND] + 80, 80, true, false, false); // set 4 bar to ground
-    /* Drive to Faraday */
-    delay(500);
+        drive(80, false);
+        delay(500);
+        turn(90);
+        delay(500);
+        drive(40, false);
+        delay(500);
+        drive(45, true);
 
-    drive(100,false);
-    delay(500);
-    turn (80);
-    delay(500);
+        /* Place Pizza on Floor 2 */
+        delay(500);
+        moveMotors(fourbar, 2, intake_Positions[targetStates[currentState++]], 80, true, false, false); // set 4 bar to Floor 2
+        delay(500);
+        drive(15, true);
+        delay(500);
+        motorClaw.move_absolute(clawOpenPos, 100); // open claw and deliver pizza
 
-    drive (12, true);
+        /* Drive back to Pizzeria */
+        delay(500);
 
-    /* Place Pizza on Floor 2 */
-
-    moveMotors(fourbar, 2, intake_Positions[INTAKE_FLOOR2], 80, true, false, false); // set 4 bar to Floor 2
-    delay(500);
-    drive(25, true);
-    delay(500);
-    motorClaw.move_absolute(clawOpenPos, 100); // open claw and deliver pizza
-
-    /* Drive back to Pizzeria */
-    delay(500);
-
-    drive(30, false);
-    delay(500);
-    moveMotors(fourbar, 2, intake_Positions[INTAKE_GROUND] + 80, 80, true, false, false); // set 4 bar to Pizzeria slot
-    delay(500);
-
-    turn(-75);
-    moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, true, false, false); // set 4 bar to Pizzeria slot
-    drive (85, true);
-
+        drive(60, false);
+        delay(500);
+        moveMotors(fourbar, 2, intake_Positions[INTAKE_GROUND] + 80, 80, true, false,
+                   false); // set 4 bar to Pizzeria slot
+        delay(500);
+        drive(25, true);
+        delay(500);
+        turn(-100);
+        delay(500);
+        moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, true, false, false); // set 4 bar to Pizzeria slot
+        drive(73, true);
+    }
     /* STRATEGY -- OED */
     /* Start from Pizzeria, Check for starting side (Left/Right), make adjustments and Pick up Pizza */
     /* Drive to Faraday */
