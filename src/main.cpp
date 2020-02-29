@@ -160,7 +160,7 @@ void autonomous() {
         drive(60, false);
         delay(500);
         moveMotors(fourbar, 2, intake_Positions[INTAKE_GROUND] + 80, 80, true, false,
-                   false); // set 4 bar to Pizzeria slot
+                   false); // set 4 bar to Ground 
         delay(500);
         drive(25, true);
         delay(500);
@@ -169,6 +169,9 @@ void autonomous() {
         moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, true, false, false); // set 4 bar to Pizzeria slot
         drive(73, true);
     }
+
+    moveMotors(fourbar, 2, intake_Positions[INTAKE_GROUND] + 80, 80, true, false,
+                   false); // set 4 bar to Ground, so the current state isnt't INTAKE_PIZZERIA
     /* STRATEGY -- OED */
     /* Start from Pizzeria, Check for starting side (Left/Right), make adjustments and Pick up Pizza */
     /* Drive to Faraday */
