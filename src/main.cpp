@@ -132,13 +132,13 @@ void autonomous() {
     delay(500);
     motorClaw.move_velocity(100); // Grab pizza
     delay(500);
-    moveMotors(fourbar, 2, intake_Positions[INTAKE_GROUND], 80, true, false, false); // set 4 bar to ground
+    moveMotors(fourbar, 2, intake_Positions[INTAKE_GROUND] + 80, 80, true, false, false); // set 4 bar to ground
     /* Drive to Faraday */
     delay(500);
 
     drive(100,false);
     delay(500);
-    turn (90);
+    turn (80);
     delay(500);
 
     drive (12, true);
@@ -147,7 +147,7 @@ void autonomous() {
 
     moveMotors(fourbar, 2, intake_Positions[INTAKE_FLOOR2], 80, true, false, false); // set 4 bar to Floor 2
     delay(500);
-    drive(20, true);
+    drive(25, true);
     delay(500);
     motorClaw.move_absolute(clawOpenPos, 100); // open claw and deliver pizza
 
@@ -156,9 +156,10 @@ void autonomous() {
 
     drive(30, false);
     delay(500);
-    moveMotors(fourbar, 2, intake_Positions[INTAKE_GROUND], 80, true, false, false); // set 4 bar to Pizzeria slot
+    moveMotors(fourbar, 2, intake_Positions[INTAKE_GROUND] + 80, 80, true, false, false); // set 4 bar to Pizzeria slot
     delay(500);
-    turn(-90);
+
+    turn(-75);
     moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, true, false, false); // set 4 bar to Pizzeria slot
     drive (85, true);
 
@@ -186,7 +187,7 @@ void opcontrol() {
             while(ctrl.get_digital(E_CONTROLLER_DIGITAL_B)) {
                 delay(10);
             }
-            turn(180);
+            turn(90);
         }
 
 
