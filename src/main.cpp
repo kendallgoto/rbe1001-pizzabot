@@ -77,10 +77,7 @@ void initialize() {
     //Limit voltage (or current ... set_current_limit)
     motor4Bar_1.set_current_limit(5000); //mA
     motor4Bar_2.set_current_limit(5000); //mA
-    motorClaw.set_current_limit(5000); //mV
-
-//    motor4Bar_1.setTimeout(4, timeUnits::sec); //prevent overdriving
-//    motor4Bar_2.setTimeout(4, timeUnits::sec);
+    motorClaw.set_current_limit(3000); //mA
 
     // setting encoder values with respect to motor4Bar_1 for intake positions
     intake_Positions[INTAKE_GROUND] = motor4Bar_1.get_position() - 5;
@@ -92,6 +89,7 @@ void initialize() {
 
     // Move 4Bar up, bring out the claw and reset the 4Bar to back to ground
     int init_height = 250;
+    drive(10, false);
     moveMotors(fourbar, 2, init_height, 80, true, false, false);
     delay(400);
     moveMotors(&motorClaw, 1, 150, 100, true, false, false);
@@ -148,7 +146,7 @@ void autonomous_OED(){
         /* Drive to Faraday */
         delay(100);
 
-        drive(80, false);
+        drive(88, false);
         delay(100);
         turn(90);
         delay(100);
@@ -173,48 +171,54 @@ void autonomous_OED(){
         delay(100);
         drive(25, true);
         delay(100);
-        turn(-100);
+        turn(-95);
         delay(100);
         moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, true, false, false); // set 4 bar to Pizzeria slot
         delay(100);
-        drive(73, true);
+        drive(83, true);
     }
 
     moveMotors(fourbar, 2, intake_Positions[INTAKE_GROUND] + 80, 80, true, false, false); // set 4 bar to ground
 
     /* Move to construction zone */
     delay(100);
+    drive(10, false);
     turn(45);
     delay(100);
     drive(15, true);
     delay(100);
     turn(45);
     delay(100);
-    drive(40, false);
+    drive(50, false);
     delay(100);
     drive(180, true);
     delay(100);
-    turn(90);
-    delay(1000);
-    drive(50, false);
-    delay(1000);
     moveMotors(fourbar, 2, intake_Positions[INTAKE_FLOOR2], 80, true, false, false);
+    delay(100);
+    turn(110);
+    delay(100);
+    drive(70, false);
+    delay(100);
     //plow full speed to get front wheel on
-    driveMotors[0].move(127);
-    driveMotors[1].move(127);
-    delay(3000); //We SHOULD be up by now.
+    driveMotors[0].move(100);
+    driveMotors[1].move(100);
+    delay(1500); //We SHOULD be up by now.
     driveMotors[0].move(0);
     driveMotors[1].move(0);
+    delay(1000);
     //then, turn by backing up the left wheel
+    drive(8, false);
+    turn(-35);
     delay(250);
-    drive(20,false);
-    turn(-20);
-    delay(250);
-    driveMotors[0].move_velocity(100);
-    //driveMotors[1].move_velocity(70);
-    driveMotors[1].move_velocity(100);
-    delay(1500);
-
+    driveMotors[0].move_velocity(127);
+    driveMotors[1].move_velocity(0);
+    delay(1000);
+    driveMotors[0].move_velocity(0);
+    driveMotors[1].move_velocity(0);
+    delay(100);
+    drive(8, false);
+    driveMotors[0].move_velocity(0);
+    driveMotors[1].move_velocity(127);
 }
 
 /*
