@@ -135,7 +135,7 @@ void autonomous_OED(){
 
     BarState targetStates[2] = {INTAKE_FLOOR2, INTAKE_FLOOR3};
     int currentState = 0;
-    for(int i = 0; i < 2; i++) {
+    for(int i = 0; i < 0; i++) {
         // starting at 40 cm away from pizza slot
         delay(500);
         moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, true, false, false); // set 4 bar to Pizzeria slot
@@ -194,6 +194,7 @@ void autonomous_OED(){
     drive(180, true);
     delay(100);
     moveMotors(fourbar, 2, intake_Positions[INTAKE_FLOOR2], 80, true, false, false);
+    drive(20,true);
     delay(100);
     turn(110);
     delay(100);
@@ -208,17 +209,28 @@ void autonomous_OED(){
     delay(1000);
     //then, turn by backing up the left wheel
     drive(8, false);
-    turn(-35);
+    delay(250);
+    turn(-40);
     delay(250);
     driveMotors[0].move_velocity(127);
     driveMotors[1].move_velocity(0);
     delay(1000);
     driveMotors[0].move_velocity(0);
     driveMotors[1].move_velocity(0);
-    delay(100);
-    drive(8, false);
-    driveMotors[0].move_velocity(0);
+    delay(1000);
+    drive(12, false);
+    delay(500);
+    driveMotors[0].move_velocity(60);
     driveMotors[1].move_velocity(127);
+    delay(500);
+    turn(-60);
+    delay(500);
+    driveMotors[0].move_velocity(127);
+    driveMotors[1].move_velocity(127);
+    delay(2000);
+    driveMotors[0].move_velocity(0);
+    driveMotors[1].move_velocity(0);
+
 }
 
 /*
