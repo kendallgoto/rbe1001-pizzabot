@@ -194,7 +194,8 @@ void autonomous_OED(){
     drive(180, true);
     delay(100);
     moveMotors(fourbar, 2, intake_Positions[INTAKE_FLOOR2], 80, true, false, false);
-    drive(20,true);
+    motorClaw.move_velocity(100); // Close the claw
+    drive(30,true);
     delay(100);
     turn(110);
     delay(100);
@@ -214,22 +215,25 @@ void autonomous_OED(){
     delay(250);
     driveMotors[0].move_velocity(127);
     driveMotors[1].move_velocity(0);
-    delay(1000);
+    delay(725);
     driveMotors[0].move_velocity(0);
     driveMotors[1].move_velocity(0);
     delay(1000);
-    drive(12, false);
+    // moveMotors(fourbar, 2, intake_Positions[INTAKE_FLOOR5], 80, true, false, false);
+    // delay(500);
+    drive(10, false);
+    delay(500);
+    driveMotors[0].move_velocity(0);
+    driveMotors[1].move_velocity(127);
     delay(500);
     driveMotors[0].move_velocity(60);
-    driveMotors[1].move_velocity(127);
-    delay(500);
-    turn(-60);
-    delay(500);
-    driveMotors[0].move_velocity(127);
-    driveMotors[1].move_velocity(127);
+    driveMotors[1].move_velocity(60);
     delay(2000);
     driveMotors[0].move_velocity(0);
     driveMotors[1].move_velocity(0);
+    turn(-90);
+
+    motorClaw.move_absolute(clawOpenPos, 100); // open claw
 
 }
 
