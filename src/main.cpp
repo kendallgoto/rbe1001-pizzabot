@@ -85,12 +85,12 @@ void initialize() {
     intake_Positions[INTAKE_FLOOR2] = motor4Bar_1.get_position() + 245;
     intake_Positions[INTAKE_PIZZERIA] = motor4Bar_1.get_position() + 340;
     intake_Positions[INTAKE_FLOOR3] = motor4Bar_1.get_position() + 365;
-    intake_Positions[INTAKE_FLOOR4] = motor4Bar_1.get_position() + 470;
+    intake_Positions[INTAKE_FLOOR4] = motor4Bar_1.get_position() + 475;
     intake_Positions[INTAKE_FLOOR5] = motor4Bar_1.get_position() + 645;
 
     // Move 4Bar up, bring out the claw and reset the 4Bar to back to ground
     int init_height = 250;
-    drive(13, false);
+    drive(15, false);
     moveMotors(fourbar, 2, init_height, 80, true, false, false);
     delay(400);
     moveMotors(&motorClaw, 1, 150, 100, true, false, false);
@@ -101,6 +101,10 @@ void initialize() {
     intakeCurrentPosition = INTAKE_GROUND;
 
     pros::lcd::set_text(1, "INITIALIZED!");
+    
+    delay(5000);
+    autonomous(); 
+    delay(1000);
     opcontrol();
 }
 
@@ -147,7 +151,7 @@ void autonomous(){
         /* Drive to Faraday */
         delay(100);
 
-        drive(88, false);
+        drive(80, false);
         delay(100);
         turn(90*side);
         delay(100);
@@ -176,7 +180,7 @@ void autonomous(){
         delay(100);
         moveMotors(fourbar, 2, intake_Positions[INTAKE_PIZZERIA], 80, true, false, false); // set 4 bar to Pizzeria slot
         delay(100);
-        drive(93, true);
+        drive(87, true);
     }
      
     //Speed Bump Code
